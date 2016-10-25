@@ -1,0 +1,12 @@
+#! /bin/bash
+
+DEBUG=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005
+
+# include path setting
+. ./path
+
+# /Users/liufengyun/Documents/dotty/dotty.jar doesn't work, as some definitions are missing
+LIB=.:$USER_HOME/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.5.jar:$DOTTY_PATH/target/scala-2.11/dotty_2.11-0.1-SNAPSHOT.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.5.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-xml/jars/scala-xml-2.11.0-M4.jar
+
+# compile user program
+java $DEBUG -classpath $LIB "$@"

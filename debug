@@ -1,0 +1,7 @@
+#! /bin/bash
+
+rm -fr *.class
+./dotc $1
+./dotr Test&
+sleep 1
+jdb -attach 5005
