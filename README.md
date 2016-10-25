@@ -5,8 +5,8 @@ Investigate debuggability of dotty
 
 # Tools
 
-- jdb
-
+- jdb (`jdb -help` and `help`)
+- javap  (`javap -c -l -p Test.class`)
 
 # How
 
