@@ -12,11 +12,12 @@ sealed trait Tree
 sealed abstract class Config(val name: String, val value: String) extends Tree
 case class Break(lines: Seq[Int]) extends Config("break", lines.mkString(", "))
 
-abstract class Command(val name: String) extends Tree
-case class SimpleCommand(cmd: String) extends Command(cmd)
-case class PatternCommand(cmd: String, pattern: String) extends Command(cmd)
-case class RegexCommand(cmd: String, regex: String) extends Command(cmd)
-case class ExactCommand(cmd: String, expect: String) extends Command(cmd)
+case class Command(val name: String, val expect: Expect = EmptyExpect) extends Tree
+
+sealed trait Expect extends Tree
+case object EmptyExpect extends Expect
+case class LitExpect(lit: String) extends Expect
+case class PatExpect(pat: String) extends Expect
 
 case class CheckFile(configs: Seq[Config], commands: Seq[Command])
 
@@ -34,52 +35,32 @@ def parseCommand(lines: Buffer[String]): Command = {
 
   val index = line.indexOf(':')
   if (index == -1) { // simple command
-    SimpleCommand(line.trim)
+    Command(line.trim)
   } else {
     val Seq(cmd, rhs) = line.split(":", 2).toSeq.map(_.trim)
     if (rhs.isEmpty) { // read next line
       if (lines.size == 0) error("unexpected end of file. Specification for `" + cmd + "` required")
 
-      if (lines.head.trim.startsWith("\"\"\"")) {    // exact match, can be multiple lines
-         val line = lines.remove(0).trim
-         val content = "\"\"\"(.+)\"\"\"".r
-         line match {
-             case content(expect) => ExactCommand(cmd, expect)
-             case _ =>
-               val buffer = new ListBuffer[String]
-               while (lines.size > 0 && lines.head.trim != "\"\"\"") buffer += lines.remove(0)
-
-               if (lines.size == 0) error("unexpected end of file. Specification for `" + cmd + "` incomplete. Ending \"\"\" expected.")
-
-               lines.remove(0)
-               ExactCommand(cmd, buffer.mkString("\\n"))
-         }
-      } else if (lines.head.trim.startsWith("\"")) {               // regex match, must be just one line
+      if (lines.head.trim.startsWith("\"")) {               // regex match, must be just one line
          val line = lines.remove(0).trim
          val content = "\"(.+)\"".r
          line match {
-             case content(expect) => RegexCommand(cmd, expect)
+             case content(expect) => Command(cmd, PatExpect(expect))
              case _ => error("incomplete specification: `" + line + "` for `" + cmd + "`. Ending \" expected.")
           }
-      } else {                                        // simple match, must be just one line, starting/ending spaces ignored
-        PatternCommand(cmd, lines.remove(0).trim)
+      } else {                                        // pattern match, must be just one line, starting/ending spaces ignored
+        Command(cmd, LitExpect(lines.remove(0).trim))
       }
 
     } else { // inline expected
-      if (rhs.startsWith("\"\"\"")) {    // exact match
-         val content = "\"\"\"(.+)\"\"\"".r
-         rhs match {
-             case content(expect) => ExactCommand(cmd, expect)
-             case _ => error("incorrect specification: `" + rhs + "` for `" + cmd + "`. Ending \"\"\" expected.")
-         }
-      } else if (rhs.startsWith("\"")) {  // regex match
+      if (rhs.startsWith("\"")) {  // regex match
          val content = "\"(.+)\"".r
          rhs match {
-             case content(expect) => RegexCommand(cmd, expect)
+             case content(expect) => Command(cmd, PatExpect(expect))
              case _ => error("incorrect specification: `" + rhs + "` for `" + cmd + "`. Ending \" expected.")
           }
-      } else {                           // simple match
-         PatternCommand(cmd, rhs)
+      } else {                           // pattern match
+         Command(cmd, LitExpect(rhs))
       }
     }
   }
@@ -116,12 +97,39 @@ def parse(lines: Buffer[String]): CheckFile = {
   CheckFile(configs, cmds)
 }
 
-def generate(check: CheckFile): Unit = ???
+def generate(check: CheckFile): Unit = {
+  val CheckFile(configs, cmds) = check
+  val breakpoints = (configs.flatMap {
+    case Break(points) => points.map(x => s"stop at Test:$x")
+  }).mkString("\n")
+
+  val commands = (cmds.map {
+    case Command(cmd, EmptyExpect)         => s"""send "$cmd""""
+    case Command(cmd, LitExpect(lit))   => s"""send "$cmd"\nexpect "$lit""""
+    case Command(cmd, PatExpect(pat))   => s"""send "$cmd"\nexpect -re {$pat}"""
+  }).mkString("\n\n")
+
+  println(
+s"""
+#!/usr/bin/expect
+
+log_user 1
+set timeout 9
+
+spawn jdb -attach 5005
+
+# breakpoints
+$breakpoints
+
+# interactions
+$commands
+""")
+}
 
 val lines = Source.fromFile(args(0)).getLines.toBuffer
 
-println(lines.mkString("\n"))
+// println(lines.mkString("\n"))
+// println(parse(lines))
 
-println(parse(lines))
-// generate(parse(lines))
+generate(parse(lines))
 
