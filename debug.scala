@@ -100,30 +100,71 @@ def parse(lines: Buffer[String]): CheckFile = {
 def generate(check: CheckFile): Unit = {
   val CheckFile(configs, cmds) = check
   val breakpoints = (configs.flatMap {
-    case Break(points) => points.map(x => s"stop at Test:$x")
+    case Break(points) => points.map(x => s"""send "stop at Test:$x\\r"""")
   }).mkString("\n")
 
   val commands = (cmds.map {
-    case Command(cmd, EmptyExpect)         => s"""send "$cmd""""
-    case Command(cmd, LitExpect(lit))   => s"""send "$cmd"\nexpect "$lit""""
-    case Command(cmd, PatExpect(pat))   => s"""send "$cmd"\nexpect -re {$pat}"""
+    case Command(cmd, EmptyExpect)      =>
+       s"""
+       |send_user "send command `$cmd`\\n"
+       |send "$cmd\\r"
+       """.stripMargin
+    case Command(cmd, LitExpect(lit))   =>
+       s"""
+        |send_user "send command `$cmd`\\n"
+        |send "$cmd\\r"
+        |expect {
+        |   "$lit" { send_user "success - $cmd : $lit \\n" }
+        |   timeout {
+        |       send_user "timeout while waiting for response: $cmd : $lit\\n"
+        |       exit 1
+        |    }
+        |}
+        |""".stripMargin
+    case Command(cmd, PatExpect(pat))   =>
+        s"""
+        |send_user "send command `$cmd`\\n"
+        |send "$cmd\\r"
+        |expect {
+        |   -re {$pat} { send_user "success - $cmd : $pat \\n" }
+        |   timeout {
+        |       send_user "timeout while waiting for response: $cmd : $pat\\n"
+        |       exit 1
+        |    }
+        |}
+        |""".stripMargin
   }).mkString("\n\n")
 
   println(
 s"""
 #!/usr/bin/expect
 
-log_user 1
-set timeout 9
+# log_user 1
+# exp_internal 1
+set timeout 3
+
+send_user "spawning job...\\n"
 
 spawn jdb -attach 5005
+
+send_user "interacting...\\n"
+
+expect {
+  "*VM Started*" { send_user "success - connected to server \\n" }
+  timeout {
+      send_user "timeout while waiting for: *VM Started*\\n"
+      exit 1
+  }
+}
+
+send_user "setting breakpoints...\\n"
 
 # breakpoints
 $breakpoints
 
 # interactions
 $commands
-""")
+""".trim)
 }
 
 val lines = Source.fromFile(args(0)).getLines.toBuffer

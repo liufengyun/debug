@@ -3,9 +3,16 @@
 # kill all descendants
 trap 'pkill -TERM -P $(jobs -p)' EXIT
 
+filename=$(basename "$1")
+extension="${filename##*.}"
+filename="${filename%.*}"
+
+bash debug.scala $filename.debug > robot
+chmod +x robot
+
 rm -fr *.class
 ./dotc $1
 ./dotr Test&
 sleep 1
-./expect
+./robot
 
