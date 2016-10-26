@@ -1,0 +1,11 @@
+#! /bin/bash
+
+# kill all descendants
+trap 'pkill -TERM -P $(jobs -p)' EXIT
+
+rm -fr *.class
+./dotc $1
+./dotr Test&
+sleep 1
+./expect
+
