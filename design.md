@@ -19,6 +19,7 @@ Conventions (defaults):
 An example test file `Test.debug`:
 
 ```
+---
 break: 10, 13, 15
 ---
 step
