@@ -97,7 +97,7 @@ def parse(lines: Buffer[String]): CheckFile = {
   CheckFile(configs, cmds)
 }
 
-def generate(check: CheckFile): Unit = {
+def generate(check: CheckFile): String = {
   val CheckFile(configs, cmds) = check
   val breakpoints = (configs.flatMap {
     case Break(points) => points.map(x =>
@@ -141,7 +141,6 @@ def generate(check: CheckFile): Unit = {
         |""".stripMargin
   }).mkString("\n\n")
 
-  println(
 s"""
 #!/usr/bin/expect
 
@@ -175,7 +174,7 @@ expect "Breakpoint hit"
 
 # interactions
 $commands
-""".trim)
+""".trim
 }
 
 val (mainObj, file) =
@@ -188,5 +187,5 @@ val lines = Source.fromFile(file).getLines.toBuffer
 // println(lines.mkString("\n"))
 // println(parse(lines))
 
-generate(parse(lines))
+println(generate(parse(lines)))
 
