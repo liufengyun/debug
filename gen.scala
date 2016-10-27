@@ -102,8 +102,8 @@ def generate(check: CheckFile): Unit = {
   val breakpoints = (configs.flatMap {
     case Break(points) => points.map(x =>
         s"""
-        |send "stop at Test$$:$x\\r"
-        |expect "breakpoint Test$$:$x"
+        |send "stop at $mainObj$$:$x\\r"
+        |expect "breakpoint $mainObj$$:$x"
         """.stripMargin
     )
   }).mkString("\n\n")
@@ -178,7 +178,12 @@ $commands
 """.trim)
 }
 
-val lines = Source.fromFile(args(0)).getLines.toBuffer
+val (mainObj, file) =
+    if (args.size == 1) ("Test", args(0))
+    else if (args(0) == "-m") (args(1), args(2))
+    else throw new Exception("incorrect args")
+
+val lines = Source.fromFile(file).getLines.toBuffer
 
 // println(lines.mkString("\n"))
 // println(parse(lines))

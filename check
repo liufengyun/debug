@@ -46,7 +46,7 @@ if [ -z "$MAIN_OBJ" ]; then
    MAIN_OBJ="Test"
 fi
 
-bash gen.scala $DEBUG_FILE > robot
+bash gen.scala -m $MAIN_OBJ $DEBUG_FILE > robot
 chmod +x robot
 
 rm -fr *.class
