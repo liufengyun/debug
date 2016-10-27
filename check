@@ -7,7 +7,7 @@ filename=$(basename "$1")
 extension="${filename##*.}"
 filename="${filename%.*}"
 
-bash debug.scala $filename.debug > robot
+bash gen.scala $filename.debug > robot
 chmod +x robot
 
 rm -fr *.class
