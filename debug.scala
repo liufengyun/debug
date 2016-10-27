@@ -100,17 +100,23 @@ def parse(lines: Buffer[String]): CheckFile = {
 def generate(check: CheckFile): Unit = {
   val CheckFile(configs, cmds) = check
   val breakpoints = (configs.flatMap {
-    case Break(points) => points.map(x => s"""send "stop at Test:$x\\r"""")
-  }).mkString("\n")
+    case Break(points) => points.map(x =>
+        s"""
+        |send "stop at Test$$:$x\\r"
+        |expect "breakpoint Test$$:$x"
+        """.stripMargin
+    )
+  }).mkString("\n\n")
 
   val commands = (cmds.map {
     case Command(cmd, EmptyExpect)      =>
-       s"""
-       |send_user "send command `$cmd`\\n"
-       |send "$cmd\\r"
-       """.stripMargin
+        s"""
+        |send_user "send command `$cmd`\\n"
+        |send "$cmd\\r"
+        |expect "main"
+        """.stripMargin
     case Command(cmd, LitExpect(lit))   =>
-       s"""
+        s"""
         |send_user "send command `$cmd`\\n"
         |send "$cmd\\r"
         |expect {
@@ -141,7 +147,7 @@ s"""
 
 # log_user 1
 # exp_internal 1
-set timeout 3
+# set timeout 5
 
 send_user "spawning job...\\n"
 
@@ -161,6 +167,11 @@ send_user "setting breakpoints...\\n"
 
 # breakpoints
 $breakpoints
+
+# run
+send_user "run program...\\n"
+send "run\\r"
+expect "Breakpoint hit"
 
 # interactions
 $commands
