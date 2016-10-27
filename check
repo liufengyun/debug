@@ -1,18 +1,57 @@
 #! /bin/bash
+#
+#  check [-c file] [-m Main] test.scala
+#
+#  -c <file>  : specify a different debug file
+#  -m <Main>  : the main object
+#
 
 # kill all descendants
 trap 'pkill -TERM -P $(jobs -p)' EXIT
+
+DEBUG_FILE=""
+MAIN_OBJ=""
+
+# parse command line params
+while getopts "c:m:" opt; do
+ case $opt in
+    c)
+      DEBUG_FILE=$OPTARG
+      ;;
+    m)
+      MAIN_OBJ=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
 
 filename=$(basename "$1")
 extension="${filename##*.}"
 filename="${filename%.*}"
 
-bash gen.scala $filename.debug > robot
+if [ -z "$DEBUG_FILE" ]; then
+   DEBUG_FILE=$filename.debug
+fi
+
+if [ -z "$MAIN_OBJ" ]; then
+   MAIN_OBJ="Test"
+fi
+
+bash gen.scala $DEBUG_FILE > robot
 chmod +x robot
 
 rm -fr *.class
 ./dotc $1
-./dotr Test&
+./dotr $MAIN_OBJ&
 sleep 1
 ./robot
 
