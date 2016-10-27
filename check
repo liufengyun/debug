@@ -34,12 +34,14 @@ done
 
 shift $((OPTIND-1))
 
+file=$1
 filename=$(basename "$1")
+dir=$(dirname "$1")
 extension="${filename##*.}"
 filename="${filename%.*}"
 
 if [ -z "$DEBUG_FILE" ]; then
-   DEBUG_FILE=$filename.debug
+   DEBUG_FILE=$dir/$filename.debug
 fi
 
 if [ -z "$MAIN_OBJ" ]; then

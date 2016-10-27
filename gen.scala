@@ -150,7 +150,7 @@ s"""
 
 send_user "spawning job...\\n"
 
-spawn jdb -attach 5005
+spawn jdb -attach 5005 -sourcepath tests
 
 send_user "interacting...\\n"
 
