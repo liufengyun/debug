@@ -27,42 +27,30 @@ step
 
 # this is a comment
 
-list:
-"""
-13      }
-14
-15
-16       def main(args: Array[String]): Unit = {
-17 =>     print(a)
-18      }
-19    }
-"""
-
 cont
 list: 17 =>
 
 list: "17 =>"
 ```
 
-In the example above, the lines above the separator `---` is the configurations,
-which is also called *front matter*. The lines below (the body) are interactions
-with the debugger.
+In the example above, the lines between the separator `---` is the configurations,
+which is also called *front matter*.
 
+
+The body holds the interactions with the debugger.
 In the body, each line is a command to the debugger. To add a check for the
 expected output of the command, just append the command with a colon (`:`).
 
-The expected output can be a multiple line string, which is wrapped inside triple
-quotes (`"""`). In such cases, an exact match is expected.
+The expected output must be a line string, which can be immediately after the
+colon or in the next line. The spaces around the text is ignored.
 
-In most cases, you can just append the pattern string after the colon, which is
-matched if it's part of the command output.
+In most cases, you can just use literal strings after the colon, which is
+matched if it's part of the command output. Wildcards like `*` can be used.
 
 User can also specify a regular expression as the expected output. To do this,
 the regular expression should be wrapped inside a quote.
 
-For simplicity, only whole line comment supported. Comments and blank lines are ignored.
-
-## Specification
+Comments and blank lines are ignored.
 
 ## Implementation
 
@@ -84,3 +72,4 @@ Following options are supported
 
 - `-c`: specify a debug file different from the default
 - `-m`: specify the main class different from `Test`
+
