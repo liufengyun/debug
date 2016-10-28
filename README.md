@@ -20,7 +20,7 @@ Debug the file `test.scala` as follows:
 
 # Automatic debug
 
-Suppose you defined a file `1-sequence.debug`, then you can run:
+Suppose you defined a file `tests/sequence.debug`, then you can run:
 
-    ./check 1-sequence.scala
+    ./check tests/sequence.scala
 
