@@ -6,10 +6,10 @@ DEBUG=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005
 . ./path
 
 # dotty.jar doesn't contain all, thus target/scala-2.11/dotty_xxx.jar is required
-COMPILER_RUNTIME=$USER_HOME/.ivy2/cache/me.d-d/scala-compiler/jars/scala-compiler-2.11.5-20160322-171045-e19b30b3cd.jar:$DOTTY_PATH/interfaces/target/dotty-interfaces-0.1-SNAPSHOT.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.5.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.5.jar:$USER_HOME/.ivy2/cache/org.scala-sbt/interface/jars/interface-0.13.9.jar:$DOTTY_PATH/target/scala-2.11/dotty_2.11-0.1-SNAPSHOT.jar
+COMPILER_RUNTIME=$USER_HOME/.ivy2/cache/me.d-d/scala-compiler/jars/scala-compiler-2.11.5-20160322-171045-e19b30b3cd.jar:$DOTTY_PATH/interfaces/target/dotty-interfaces-0.1-SNAPSHOT.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.5.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.5.jar:$USER_HOME/.ivy2/cache/org.scala-sbt/interface/jars/interface-0.13.9.jar:$DOTTY_PATH/compiler/target/scala-2.11/dotty_2.11-0.1-SNAPSHOT.jar:$DOTTY_PATH/library/target/scala-2.11/dotty-library_2.11-0.1-SNAPSHOT.jar
 
 # /Users/liufengyun/Documents/dotty/dotty.jar doesn't work, as some definitions are missing
-LIB=.:$USER_HOME/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.5.jar:$DOTTY_PATH/target/scala-2.11/dotty_2.11-0.1-SNAPSHOT.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.5.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-xml/jars/scala-xml-2.11.0-M4.jar
+LIB=.:$USER_HOME/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.5.jar:$DOTTY_PATH/compiler/target/scala-2.11/dotty_2.11-0.1-SNAPSHOT.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.5.jar:$USER_HOME/.ivy2/cache/org.scala-lang/scala-xml/jars/scala-xml-2.11.0-M4.jar:$DOTTY_PATH/library/target/scala-2.11/dotty-library_2.11-0.1-SNAPSHOT.jar
 
 # build bootstrapped dotty.jar
 # sbt "test:runMain dotc.build"
